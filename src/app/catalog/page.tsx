@@ -1,27 +1,23 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   Box,
   Container,
   Heading,
   SimpleGrid,
-  Select,
   Input,
   HStack,
   VStack,
   Text,
   Button,
-  useToast,
-  useColorModeValue,
-  Spinner,
   Center,
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useProducts, useCategories, type ProductFilters } from '@/hooks';
+import type { Product } from '@/types';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { ProductCardSkeleton } from '@/components/ui/ProductCardSkeleton';
-import { debounce } from '@/lib/utils';
 
 export default function CatalogPage() {
   const [filters, setFilters] = useState<ProductFilters>({
@@ -30,81 +26,83 @@ export default function CatalogPage() {
     sortBy: 'name-asc',
   });
 
-  const toast = useToast();
-  const bgColor = useColorModeValue('gray.50', 'gray.900');
-  const textColor = useColorModeValue('gray.600', 'gray.300');
+  const bgColor = 'gray.50';
+  const textColor = 'gray.600';
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced search to avoid too many API calls
-  const debouncedSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setFilters(prev => ({ ...prev, search: searchTerm }));
-    }, 500),
-    []
-  );
+  const debouncedSearch = useCallback((searchTerm: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchTerm }));
+    }, 500);
+  }, []);
 
   const { data: products, isLoading, error } = useProducts(filters);
   const { data: categories, isLoading: categoriesLoading } = useCategories();
 
   const handleCategoryChange = (category: string) => {
-    setFilters(prev => ({ ...prev, category }));
+    setFilters((prev) => ({ ...prev, category }));
   };
 
   const handleSortChange = (sortBy: string) => {
-    setFilters(prev => ({ ...prev, sortBy: sortBy as ProductFilters['sortBy'] }));
+    setFilters((prev) => ({
+      ...prev,
+      sortBy: sortBy as ProductFilters['sortBy'],
+    }));
   };
 
   const handleSearchChange = (searchTerm: string) => {
     debouncedSearch(searchTerm);
   };
 
-  const handleProductView = (product: any) => {
+  const handleProductView = (product: Product) => {
     // TODO: Navigate to product detail page
     console.log('View product:', product);
   };
 
   // Error handling
   if (error) {
-    toast({
-      title: 'Error loading products',
-      description: 'Failed to load products. Please try again.',
-      status: 'error',
-      duration: 5000,
-      isClosable: true,
-    });
+    console.error('Error loading products:', error);
   }
 
   return (
     <Box bg={bgColor} minHeight="100vh" py={8}>
       <Container maxW="container.xl">
-        <VStack spacing={8} align="stretch">
+        <VStack gap={8} align="stretch">
           <Heading as="h1" size="xl" textAlign="center">
             Product Catalog
           </Heading>
 
           {/* Filters and Search */}
-          <Box
-            bg={useColorModeValue('white', 'gray.800')}
-            p={6}
-            borderRadius="lg"
-            shadow="sm"
-          >
-            <HStack spacing={4} wrap="wrap">
+          <Box bg="white" p={6} borderRadius="lg" shadow="sm">
+            <HStack gap={4} wrap="wrap">
               {/* Category Filter */}
               <Box minW="200px">
                 <Text fontSize="sm" fontWeight="medium" mb={2}>
                   Category
                 </Text>
-                <Select
+                <select
                   value={filters.category}
                   onChange={(e) => handleCategoryChange(e.target.value)}
-                  isDisabled={categoriesLoading}
+                  disabled={categoriesLoading}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    backgroundColor: 'white',
+                  }}
                 >
                   {categories?.map((category) => (
                     <option key={category.id} value={category.slug}>
                       {category.name} ({category.productCount})
                     </option>
                   ))}
-                </Select>
+                </select>
               </Box>
 
               {/* Sort Filter */}
@@ -112,15 +110,23 @@ export default function CatalogPage() {
                 <Text fontSize="sm" fontWeight="medium" mb={2}>
                   Sort By
                 </Text>
-                <Select
+                <select
                   value={filters.sortBy}
                   onChange={(e) => handleSortChange(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    backgroundColor: 'white',
+                  }}
                 >
                   <option value="name-asc">Name A-Z</option>
                   <option value="name-desc">Name Z-A</option>
                   <option value="price-asc">Price Low to High</option>
                   <option value="price-desc">Price High to Low</option>
-                </Select>
+                </select>
               </Box>
 
               {/* Search Input */}
@@ -142,14 +148,14 @@ export default function CatalogPage() {
 
           {/* Products Grid */}
           {isLoading ? (
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
               {Array.from({ length: 8 }).map((_, index) => (
                 <ProductCardSkeleton key={index} />
               ))}
             </SimpleGrid>
           ) : error ? (
             <Center py={20}>
-              <VStack spacing={4}>
+              <VStack gap={4}>
                 <Text fontSize="lg" color="red.500">
                   Failed to load products
                 </Text>
@@ -163,7 +169,7 @@ export default function CatalogPage() {
             </Center>
           ) : !products || products.length === 0 ? (
             <Center py={20}>
-              <VStack spacing={4}>
+              <VStack gap={4}>
                 <Text fontSize="lg" color={textColor}>
                   No products found
                 </Text>
@@ -174,7 +180,11 @@ export default function CatalogPage() {
                   colorScheme="blue"
                   variant="outline"
                   onClick={() => {
-                    setFilters({ category: 'all', search: '', sortBy: 'name-asc' });
+                    setFilters({
+                      category: 'all',
+                      search: '',
+                      sortBy: 'name-asc',
+                    });
                   }}
                 >
                   Clear Filters
@@ -182,7 +192,7 @@ export default function CatalogPage() {
               </VStack>
             </Center>
           ) : (
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
               {products.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -196,7 +206,8 @@ export default function CatalogPage() {
           {/* Results Count */}
           {products && products.length > 0 && (
             <Text fontSize="sm" color={textColor} textAlign="center">
-              Showing {products.length} product{products.length !== 1 ? 's' : ''}
+              Showing {products.length} product
+              {products.length !== 1 ? 's' : ''}
             </Text>
           )}
         </VStack>

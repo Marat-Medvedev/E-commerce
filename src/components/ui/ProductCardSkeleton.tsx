@@ -1,16 +1,23 @@
-import { Card, CardBody, Skeleton, VStack, HStack } from '@chakra-ui/react';
+import { Box, Skeleton, VStack, HStack } from '@chakra-ui/react';
 
 export const ProductCardSkeleton = () => {
   return (
-    <Card borderRadius="lg" overflow="hidden" height="100%">
+    <Box
+      borderRadius="lg"
+      overflow="hidden"
+      height="100%"
+      border="1px solid"
+      borderColor="gray.200"
+      bg="white"
+    >
       <Skeleton height="200px" />
-      <CardBody>
-        <VStack align="stretch" spacing={3} height="100%">
-          <VStack align="stretch" spacing={2} flex="1">
+      <Box p={4}>
+        <VStack align="stretch" gap={3} height="100%">
+          <VStack align="stretch" gap={2} flex="1">
             <Skeleton height="20px" />
             <Skeleton height="16px" width="80%" />
             <Skeleton height="16px" width="60%" />
-            <HStack spacing={1}>
+            <HStack gap={1}>
               <Skeleton height="16px" width="16px" />
               <Skeleton height="16px" width="40px" />
             </HStack>
@@ -18,7 +25,7 @@ export const ProductCardSkeleton = () => {
           </VStack>
           <Skeleton height="32px" />
         </VStack>
-      </CardBody>
-    </Card>
+      </Box>
+    </Box>
   );
 };

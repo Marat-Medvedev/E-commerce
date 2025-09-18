@@ -1,7 +1,5 @@
 import {
   Box,
-  Card,
-  CardBody,
   Image,
   Heading,
   Text,
@@ -9,7 +7,6 @@ import {
   Badge,
   HStack,
   VStack,
-  useColorModeValue,
 } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import type { Product } from '@/types';
@@ -21,12 +18,12 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, onView }: ProductCardProps) => {
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const textColor = useColorModeValue('gray.600', 'gray.300');
+  const bgColor = 'white';
+  const borderColor = 'gray.200';
+  const textColor = 'gray.600';
 
   return (
-    <Card
+    <Box
       bg={bgColor}
       borderColor={borderColor}
       borderWidth="1px"
@@ -46,7 +43,10 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
           width="100%"
           height="200px"
           objectFit="cover"
-          fallbackSrc="https://via.placeholder.com/300x200?text=No+Image"
+          onError={(e) => {
+            e.currentTarget.src =
+              'https://via.placeholder.com/300x200?text=No+Image';
+          }}
         />
         {!product.inStock && (
           <Badge
@@ -61,19 +61,36 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
         )}
       </Box>
 
-      <CardBody>
-        <VStack align="stretch" spacing={3} height="100%">
-          <VStack align="stretch" spacing={2} flex="1">
-            <Heading size="md" noOfLines={2}>
+      <Box p={4}>
+        <VStack align="stretch" gap={3} height="100%">
+          <VStack align="stretch" gap={2} flex="1">
+            <Heading
+              size="md"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
               {product.name}
             </Heading>
-            
-            <Text color={textColor} fontSize="sm" noOfLines={2}>
+
+            <Text
+              color={textColor}
+              fontSize="sm"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
               {product.description}
             </Text>
 
             {product.rating && (
-              <HStack spacing={1}>
+              <HStack gap={1}>
                 <StarIcon color="yellow.400" />
                 <Text fontSize="sm" color={textColor}>
                   {product.rating}
@@ -91,13 +108,13 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
             variant="outline"
             size="sm"
             onClick={() => onView?.(product)}
-            isDisabled={!product.inStock}
+            disabled={!product.inStock}
             width="100%"
           >
             View Details
           </Button>
         </VStack>
-      </CardBody>
-    </Card>
+      </Box>
+    </Box>
   );
 };

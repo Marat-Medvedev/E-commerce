@@ -75,27 +75,28 @@ const mockProducts: Product[] = [
 
 const fetchProducts = async (filters: ProductFilters): Promise<Product[]> => {
   // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   let filteredProducts = [...mockProducts];
-  
+
   // Filter by category
   if (filters.category && filters.category !== 'all') {
     filteredProducts = filteredProducts.filter(
-      product => product.category.toLowerCase() === filters.category?.toLowerCase()
+      (product) =>
+        product.category.toLowerCase() === filters.category?.toLowerCase()
     );
   }
-  
+
   // Filter by search
   if (filters.search) {
     const searchTerm = filters.search.toLowerCase();
     filteredProducts = filteredProducts.filter(
-      product => 
+      (product) =>
         product.name.toLowerCase().includes(searchTerm) ||
         product.description.toLowerCase().includes(searchTerm)
     );
   }
-  
+
   // Sort products
   if (filters.sortBy) {
     filteredProducts.sort((a, b) => {
@@ -113,13 +114,13 @@ const fetchProducts = async (filters: ProductFilters): Promise<Product[]> => {
       }
     });
   }
-  
+
   // Simulate pagination
   const page = filters.page || 1;
   const limit = filters.limit || 12;
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
-  
+
   return filteredProducts.slice(startIndex, endIndex);
 };
 

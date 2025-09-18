@@ -1,21 +1,37 @@
 // Custom hook for cart functionality
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState, AppDispatch } from '@/store';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
+import type { Product } from '@/types';
+
+interface CartState {
+  items: Array<{ product: Product; quantity: number }>;
+  total: number;
+  itemCount: number;
+}
 
 export const useCart = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const cart = useSelector((state: RootState) => state.cart);
+  const cart = useSelector(
+    (state: RootState) =>
+      (state as unknown as { cart: CartState }).cart || {
+        items: [],
+        total: 0,
+        itemCount: 0,
+      }
+  );
 
   // Cart actions will be implemented when cart slice is created
-  const addToCart = (product: any, quantity: number = 1) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const addToCart = (_product: Product, _quantity = 1) => {
     // Implementation will be added later
   };
 
-  const removeFromCart = (productId: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const removeFromCart = (_productId: string) => {
     // Implementation will be added later
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const updateQuantity = (_productId: string, _quantity: number) => {
     // Implementation will be added later
   };
 
