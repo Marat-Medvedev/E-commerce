@@ -4,7 +4,13 @@ import type { Product } from '@/types';
 export interface ProductFilters {
   category?: string;
   search?: string;
-  sortBy?: 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc';
+  sortBy?:
+    | 'price-asc'
+    | 'price-desc'
+    | 'name-asc'
+    | 'name-desc'
+    | 'rating-asc'
+    | 'rating-desc';
   page?: number;
   limit?: number;
 }
@@ -181,6 +187,10 @@ const fetchProducts = async (filters: ProductFilters): Promise<Product[]> => {
           return a.name.localeCompare(b.name);
         case 'name-desc':
           return b.name.localeCompare(a.name);
+        case 'rating-asc':
+          return (a.rating || 0) - (b.rating || 0);
+        case 'rating-desc':
+          return (b.rating || 0) - (a.rating || 0);
         default:
           return 0;
       }
