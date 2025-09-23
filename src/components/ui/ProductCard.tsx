@@ -7,8 +7,8 @@ import {
   Badge,
   HStack,
   VStack,
+  RatingGroup,
 } from '@chakra-ui/react';
-import { StarIcon } from '@chakra-ui/icons';
 import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
@@ -35,6 +35,8 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
         shadow: 'lg',
       }}
       height="100%"
+      display="flex"
+      flexDirection="column"
     >
       <Box position="relative">
         <Image
@@ -61,7 +63,7 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
         )}
       </Box>
 
-      <Box p={4}>
+      <Box p={4} height="inherit">
         <VStack align="stretch" gap={3} height="100%">
           <VStack align="stretch" gap={2} flex="1">
             <Heading
@@ -90,9 +92,18 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
             </Text>
 
             {product.rating && (
-              <HStack gap={1}>
-                <StarIcon color="yellow.400" />
-                <Text fontSize="sm" color={textColor}>
+              <HStack gap={2} align="center">
+                <RatingGroup.Root
+                  colorPalette="orange"
+                  readOnly
+                  count={5}
+                  value={product.rating}
+                  size="xs"
+                >
+                  <RatingGroup.HiddenInput />
+                  <RatingGroup.Control />
+                </RatingGroup.Root>
+                <Text fontSize="sm" color={textColor} fontWeight="medium">
                   {product.rating}
                 </Text>
               </HStack>
