@@ -16,7 +16,7 @@ export interface ProductFilters {
 }
 
 // Mock data for development
-const mockProducts: Product[] = [
+export const mockProducts: Product[] = [
   {
     id: '1',
     name: 'Wireless Headphones',
