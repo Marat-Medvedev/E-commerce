@@ -1,23 +1,25 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   Box,
   Container,
   Heading,
   SimpleGrid,
   Input,
+  InputGroup,
   HStack,
   VStack,
   Text,
   Button,
   Center,
+  CloseButton,
 } from '@chakra-ui/react';
-import { SearchIcon } from '@chakra-ui/icons';
 import { useProducts, useCategories, type ProductFilters } from '@/hooks';
 import type { Product } from '@/types';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { ProductCardSkeleton } from '@/components/ui/ProductCardSkeleton';
+import { LuSearch } from 'react-icons/lu';
 
 export default function CatalogPage() {
   const [filters, setFilters] = useState<ProductFilters>({
@@ -26,42 +28,135 @@ export default function CatalogPage() {
     sortBy: 'name-asc',
   });
 
+  // Separate state for immediate input display
+  const [searchInput, setSearchInput] = useState('');
+
   const bgColor = 'gray.50';
   const textColor = 'gray.600';
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Debounced search to avoid too many API calls
+  // Optimized debounced search with immediate input feedback
   const debouncedSearch = useCallback((searchTerm: string) => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     searchTimeoutRef.current = setTimeout(() => {
       setFilters((prev) => ({ ...prev, search: searchTerm }));
-    }, 500);
+    }, 300); // Reduced from 500ms to 300ms for better responsiveness
   }, []);
 
   const { data: products, isLoading, error } = useProducts(filters);
   const { data: categories, isLoading: categoriesLoading } = useCategories();
 
-  const handleCategoryChange = (category: string) => {
+  // Memoized handlers to prevent unnecessary re-renders
+  const handleCategoryChange = useCallback((category: string) => {
     setFilters((prev) => ({ ...prev, category }));
-  };
+  }, []);
 
-  const handleSortChange = (sortBy: string) => {
+  const handleSortChange = useCallback((sortBy: string) => {
     setFilters((prev) => ({
       ...prev,
       sortBy: sortBy as ProductFilters['sortBy'],
     }));
-  };
+  }, []);
 
-  const handleSearchChange = (searchTerm: string) => {
-    debouncedSearch(searchTerm);
-  };
+  const handleSearchChange = useCallback(
+    (searchTerm: string) => {
+      setSearchInput(searchTerm); // Immediate UI update
+      debouncedSearch(searchTerm); // Debounced API call
+    },
+    [debouncedSearch]
+  );
 
-  const handleProductView = (product: Product) => {
+  const handleClearSearch = useCallback(() => {
+    setSearchInput(''); // Clear input immediately
+    setFilters((prev) => ({ ...prev, search: '' })); // Clear search filter
+    inputRef.current?.focus(); // Focus the input after clearing
+  }, []);
+
+  const handleProductView = useCallback((product: Product) => {
     // TODO: Navigate to product detail page
     console.log('View product:', product);
-  };
+  }, []);
+
+  // Memoized products grid to prevent unnecessary re-renders
+  const productsGrid = useMemo(() => {
+    if (isLoading) {
+      return (
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <ProductCardSkeleton key={index} />
+          ))}
+        </SimpleGrid>
+      );
+    }
+
+    if (error) {
+      return (
+        <Center py={20}>
+          <VStack gap={4}>
+            <Text fontSize="lg" color="red.500">
+              Failed to load products
+            </Text>
+            <Button colorScheme="blue" onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </VStack>
+        </Center>
+      );
+    }
+
+    if (!products || products.length === 0) {
+      return (
+        <Center py={20}>
+          <VStack gap={4}>
+            <Text fontSize="lg" color={textColor}>
+              No products found
+            </Text>
+            <Text fontSize="sm" color={textColor} textAlign="center">
+              Try adjusting your filters or search terms
+            </Text>
+            <Button
+              colorScheme="blue"
+              variant="outline"
+              onClick={() => {
+                setFilters({
+                  category: 'all',
+                  search: '',
+                  sortBy: 'name-asc',
+                });
+                setSearchInput('');
+              }}
+            >
+              Clear Filters
+            </Button>
+          </VStack>
+        </Center>
+      );
+    }
+
+    return (
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
+        {products.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            onView={handleProductView}
+          />
+        ))}
+      </SimpleGrid>
+    );
+  }, [isLoading, error, products, textColor, handleProductView]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Error handling
   if (error) {
@@ -136,74 +231,39 @@ export default function CatalogPage() {
                 <Text fontSize="sm" fontWeight="medium" mb={2}>
                   Search Products
                 </Text>
-                <HStack>
+                <InputGroup
+                  startElement={<LuSearch />}
+                  endElement={
+                    searchInput ? (
+                      <CloseButton
+                        size="xs"
+                        onClick={handleClearSearch}
+                        me="-2"
+                      />
+                    ) : undefined
+                  }
+                >
                   <Input
+                    ref={inputRef}
                     placeholder="Search products..."
-                    value={filters.search}
+                    value={searchInput}
                     onChange={(e) => handleSearchChange(e.target.value)}
+                    // Performance optimizations
+                    autoComplete="off"
+                    spellCheck={false}
+                    // Prevent unnecessary re-renders
+                    style={{
+                      willChange: 'auto',
+                      transform: 'translateZ(0)', // Force hardware acceleration
+                    }}
                   />
-                  <SearchIcon color="gray.400" />
-                </HStack>
+                </InputGroup>
               </Box>
             </HStack>
           </Box>
 
           {/* Products Grid */}
-          {isLoading ? (
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
-              {Array.from({ length: 8 }).map((_, index) => (
-                <ProductCardSkeleton key={index} />
-              ))}
-            </SimpleGrid>
-          ) : error ? (
-            <Center py={20}>
-              <VStack gap={4}>
-                <Text fontSize="lg" color="red.500">
-                  Failed to load products
-                </Text>
-                <Button
-                  colorScheme="blue"
-                  onClick={() => window.location.reload()}
-                >
-                  Try Again
-                </Button>
-              </VStack>
-            </Center>
-          ) : !products || products.length === 0 ? (
-            <Center py={20}>
-              <VStack gap={4}>
-                <Text fontSize="lg" color={textColor}>
-                  No products found
-                </Text>
-                <Text fontSize="sm" color={textColor} textAlign="center">
-                  Try adjusting your filters or search terms
-                </Text>
-                <Button
-                  colorScheme="blue"
-                  variant="outline"
-                  onClick={() => {
-                    setFilters({
-                      category: 'all',
-                      search: '',
-                      sortBy: 'name-asc',
-                    });
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              </VStack>
-            </Center>
-          ) : (
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onView={handleProductView}
-                />
-              ))}
-            </SimpleGrid>
-          )}
+          {productsGrid}
 
           {/* Results Count */}
           {products && products.length > 0 && (
