@@ -1,20 +1,38 @@
 // Redux store configuration
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
 import { combineReducers } from '@reduxjs/toolkit';
+import storage from 'redux-persist/lib/storage';
 
-// Import slices (will be created later)
-// import cartSlice from './slices/cartSlice';
+// Import slices
+import cartSlice from './slices/cartSlice';
+
+// Use a more compatible storage for Next.js
+const createNoopStorage = () => {
+  return {
+    getItem() {
+      return Promise.resolve(null);
+    },
+    setItem(_: string, value: unknown) {
+      return Promise.resolve(value);
+    },
+    removeItem() {
+      return Promise.resolve();
+    },
+  };
+};
+
+const persistStorage =
+  typeof window !== 'undefined' ? storage : createNoopStorage();
 
 const persistConfig = {
   key: 'root',
-  storage,
+  storage: persistStorage,
   whitelist: ['cart'], // Only persist cart state
 };
 
 const rootReducer = combineReducers({
-  // cart: cartSlice,
+  cart: cartSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
