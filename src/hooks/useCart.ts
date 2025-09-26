@@ -1,42 +1,32 @@
 // Custom hook for cart functionality
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/store';
 import type { Product } from '@/types';
-
-interface CartState {
-  items: Array<{ product: Product; quantity: number }>;
-  total: number;
-  itemCount: number;
-}
+import {
+  addToCart as addToCartAction,
+  removeFromCart as removeFromCartAction,
+  updateQuantity as updateQuantityAction,
+  clearCart as clearCartAction,
+} from '@/store/slices/cartSlice';
 
 export const useCart = () => {
-  const cart = useSelector(
-    (state: RootState) =>
-      (state as unknown as { cart: CartState }).cart || {
-        items: [],
-        total: 0,
-        itemCount: 0,
-      }
-  );
+  const dispatch = useDispatch();
+  const cart = useSelector((state: RootState) => state.cart);
 
-  // Cart actions will be implemented when cart slice is created
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const addToCart = (_product: Product, _quantity = 1) => {
-    // Implementation will be added later
+  const addToCart = (product: Product, quantity = 1) => {
+    dispatch(addToCartAction({ product, quantity }));
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const removeFromCart = (_productId: string) => {
-    // Implementation will be added later
+  const removeFromCart = (productId: string) => {
+    dispatch(removeFromCartAction(productId));
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const updateQuantity = (_productId: string, _quantity: number) => {
-    // Implementation will be added later
+  const updateQuantity = (productId: string, quantity: number) => {
+    dispatch(updateQuantityAction({ productId, quantity }));
   };
 
   const clearCart = () => {
-    // Implementation will be added later
+    dispatch(clearCartAction());
   };
 
   return {

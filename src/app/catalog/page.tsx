@@ -76,8 +76,7 @@ export default function CatalogPage() {
   }, []);
 
   const handleProductView = useCallback((product: Product) => {
-    // TODO: Navigate to product detail page
-    console.log('View product:', product);
+    window.location.href = `/product/${product.id}`;
   }, []);
 
   // Memoized products grid to prevent unnecessary re-renders

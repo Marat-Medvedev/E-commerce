@@ -7,7 +7,9 @@ export function formatPrice(price: number): string {
   }).format(price);
 }
 
-export function calculateTotal(items: Array<{ price: number; quantity: number }>): number {
+export function calculateTotal(
+  items: Array<{ price: number; quantity: number }>
+): number {
   return items.reduce((total, item) => total + item.price * item.quantity, 0);
 }
 
@@ -15,7 +17,7 @@ export function generateId(): string {
   return Math.random().toString(36).substr(2, 9);
 }
 
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
