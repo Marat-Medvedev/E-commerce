@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   VStack,
   HStack,
@@ -28,6 +29,7 @@ interface CartDrawerProps {
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
+  const router = useRouter();
   const dispatch = useDispatch();
   const items = useSelector((state: RootState) => state.cart.items);
   const subtotal = useSelector(selectSubtotal);
@@ -51,6 +53,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
   const handleCheckout = () => {
     onClose();
+    router.push('/checkout');
   };
 
   if (!isOpen) return null;
