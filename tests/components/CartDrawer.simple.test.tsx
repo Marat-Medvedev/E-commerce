@@ -7,6 +7,14 @@ import CartDrawer from '@/components/features/CartDrawer';
 import cartReducer from '@/store/slices/cartSlice';
 import type { CartItem } from '@/types';
 
+// Mock Next.js router
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
 // Mock the toast hook
 jest.mock('@chakra-ui/react', () => ({
   ...jest.requireActual('@chakra-ui/react'),
