@@ -67,6 +67,7 @@ describe('ProductDetail', () => {
     const { useCart } = jest.requireMock('@/hooks/useCart');
     useCart.mockReturnValue({
       addToCart: mockAddToCart,
+      isInCart: jest.fn().mockReturnValue(false),
     });
   });
 
@@ -107,11 +108,12 @@ describe('ProductDetail', () => {
     renderWithProviders(<ProductDetail productId="1" />);
 
     await waitFor(() => {
-      const addToCartButton = screen.getByText('Add to Cart');
-      expect(addToCartButton).toBeInTheDocument();
+      const addToCartButtons = screen.getAllByText('Add to Cart');
+      expect(addToCartButtons.length).toBeGreaterThan(0);
     });
 
-    fireEvent.click(screen.getByText('Add to Cart'));
+    const addToCartButtons = screen.getAllByText('Add to Cart');
+    fireEvent.click(addToCartButtons[0]); // Click the first one (main product)
 
     expect(mockAddToCart).toHaveBeenCalledWith(mockProduct, 1);
   });

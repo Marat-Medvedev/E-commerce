@@ -13,14 +13,14 @@ export interface Product {
 
 export interface CartItem {
   id: string;
-  product: Product;
-  quantity: number;
+  title: string;
+  price: number;
+  qty: number;
+  imageUrl: string;
 }
 
 export interface CartState {
   items: CartItem[];
-  total: number;
-  itemCount: number;
 }
 
 export interface User {
