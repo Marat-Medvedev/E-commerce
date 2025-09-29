@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
+import { useCart } from '@/hooks/useCart';
 
 interface ProductCardProps {
   product: Product;
@@ -21,6 +22,11 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
   const bgColor = 'white';
   const borderColor = 'gray.200';
   const textColor = 'gray.600';
+  const { addToCart, isInCart } = useCart();
+
+  const handleAddToCart = () => {
+    addToCart(product);
+  };
 
   return (
     <Box
@@ -114,16 +120,27 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
             </Text>
           </VStack>
 
-          <Button
-            colorScheme="blue"
-            variant="outline"
-            size="sm"
-            onClick={() => onView?.(product)}
-            disabled={!product.inStock}
-            width="100%"
-          >
-            View Details
-          </Button>
+          <HStack gap={2}>
+            <Button
+              colorScheme="blue"
+              variant="outline"
+              size="sm"
+              onClick={() => onView?.(product)}
+              disabled={!product.inStock}
+              flex={1}
+            >
+              View Details
+            </Button>
+            <Button
+              colorScheme="blue"
+              size="sm"
+              onClick={handleAddToCart}
+              disabled={!product.inStock || isInCart(product.id)}
+              flex={1}
+            >
+              {isInCart(product.id) ? 'In Cart' : 'Add to Cart'}
+            </Button>
+          </HStack>
         </VStack>
       </Box>
     </Box>
