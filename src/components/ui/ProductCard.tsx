@@ -1,6 +1,5 @@
 import {
   Box,
-  Image,
   Heading,
   Text,
   Button,
@@ -9,19 +8,20 @@ import {
   VStack,
   RatingGroup,
 } from '@chakra-ui/react';
+import Image from 'next/image';
+import { memo } from 'react';
 import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/hooks/useCart';
+import { useTheme } from 'next-themes';
 
 interface ProductCardProps {
   product: Product;
   onView?: (product: Product) => void;
 }
 
-export const ProductCard = ({ product, onView }: ProductCardProps) => {
-  const bgColor = 'white';
-  const borderColor = 'gray.200';
-  const textColor = 'gray.600';
+export const ProductCard = memo(({ product, onView }: ProductCardProps) => {
+  const { theme } = useTheme();
   const { addToCart, isInCart } = useCart();
 
   const handleAddToCart = () => {
@@ -30,8 +30,8 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
 
   return (
     <Box
-      bg={bgColor}
-      borderColor={borderColor}
+      bg={theme === 'dark' ? 'gray.800' : 'white'}
+      borderColor={theme === 'dark' ? 'gray.700' : 'gray.200'}
       borderWidth="1px"
       borderRadius="lg"
       overflow="hidden"
@@ -39,18 +39,34 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
       _hover={{
         transform: 'translateY(-2px)',
         shadow: 'lg',
+        borderColor: theme === 'dark' ? 'blue.400' : 'blue.300',
+      }}
+      _focusWithin={{
+        shadow: 'lg',
+        borderColor: theme === 'dark' ? 'blue.500' : 'blue.400',
       }}
       height="100%"
       display="flex"
       flexDirection="column"
+      role="article"
+      aria-label={`Product: ${product.name}`}
     >
-      <Box position="relative">
+      <Box
+        position="relative"
+        height="0"
+        paddingBottom="75%"
+        overflow="hidden"
+        width="100%"
+      >
         <Image
           src={product.image}
           alt={product.name}
-          width="100%"
-          height="200px"
-          objectFit="cover"
+          fill
+          style={{
+            objectFit: 'cover',
+          }}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          loading="lazy"
           onError={(e) => {
             e.currentTarget.src =
               'https://via.placeholder.com/300x200?text=No+Image';
@@ -74,6 +90,7 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
           <VStack align="stretch" gap={2} flex="1">
             <Heading
               size="md"
+              color={theme === 'dark' ? 'white' : 'gray.800'}
               style={{
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
@@ -85,7 +102,7 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
             </Heading>
 
             <Text
-              color={textColor}
+              color={theme === 'dark' ? 'gray.300' : 'gray.600'}
               fontSize="sm"
               style={{
                 display: '-webkit-box',
@@ -109,13 +126,21 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
                   <RatingGroup.HiddenInput />
                   <RatingGroup.Control />
                 </RatingGroup.Root>
-                <Text fontSize="sm" color={textColor} fontWeight="medium">
+                <Text
+                  fontSize="sm"
+                  color={theme === 'dark' ? 'gray.300' : 'gray.600'}
+                  fontWeight="medium"
+                >
                   {product.rating}
                 </Text>
               </HStack>
             )}
 
-            <Text fontSize="lg" fontWeight="bold" color="blue.500">
+            <Text
+              fontSize="lg"
+              fontWeight="bold"
+              color={theme === 'dark' ? 'blue.300' : 'blue.600'}
+            >
               {formatPrice(product.price)}
             </Text>
           </VStack>
@@ -128,6 +153,10 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
               onClick={() => onView?.(product)}
               disabled={!product.inStock}
               flex={1}
+              _focus={{
+                boxShadow: '0 0 0 3px rgba(66, 153, 225, 0.5)',
+              }}
+              aria-label={`View details for ${product.name}`}
             >
               View Details
             </Button>
@@ -137,6 +166,14 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
               onClick={handleAddToCart}
               disabled={!product.inStock || isInCart(product.id)}
               flex={1}
+              _focus={{
+                boxShadow: '0 0 0 3px rgba(66, 153, 225, 0.5)',
+              }}
+              aria-label={
+                isInCart(product.id)
+                  ? `${product.name} is already in cart`
+                  : `Add ${product.name} to cart`
+              }
             >
               {isInCart(product.id) ? 'In Cart' : 'Add to Cart'}
             </Button>
@@ -145,4 +182,6 @@ export const ProductCard = ({ product, onView }: ProductCardProps) => {
       </Box>
     </Box>
   );
-};
+});
+
+ProductCard.displayName = 'ProductCard';

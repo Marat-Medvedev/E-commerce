@@ -1,25 +1,36 @@
 'use client';
 
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import {
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+  useEffect,
+  lazy,
+  Suspense,
+} from 'react';
 import {
   Box,
   Container,
   Heading,
   SimpleGrid,
-  Input,
-  InputGroup,
   HStack,
   VStack,
   Text,
   Button,
   Center,
-  CloseButton,
 } from '@chakra-ui/react';
 import { useProducts, useCategories, type ProductFilters } from '@/hooks';
 import type { Product } from '@/types';
-import { ProductCard } from '@/components/ui/ProductCard';
 import { ProductCardSkeleton } from '@/components/ui/ProductCardSkeleton';
-import { LuSearch } from 'react-icons/lu';
+import { useTheme } from 'next-themes';
+
+// Lazy load ProductCard for better performance
+const ProductCard = lazy(() =>
+  import('@/components/ui/ProductCard').then((module) => ({
+    default: module.ProductCard,
+  }))
+);
 
 export default function CatalogPage() {
   const [filters, setFilters] = useState<ProductFilters>({
@@ -31,8 +42,9 @@ export default function CatalogPage() {
   // Separate state for immediate input display
   const [searchInput, setSearchInput] = useState('');
 
-  const bgColor = 'gray.50';
-  const textColor = 'gray.600';
+  const { theme } = useTheme();
+  const bgColor = theme === 'dark' ? 'gray.900' : 'gray.50';
+  const textColor = theme === 'dark' ? 'gray.300' : 'gray.600';
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -138,11 +150,9 @@ export default function CatalogPage() {
     return (
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
         {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onView={handleProductView}
-          />
+          <Suspense key={product.id} fallback={<ProductCardSkeleton />}>
+            <ProductCard product={product} onView={handleProductView} />
+          </Suspense>
         ))}
       </SimpleGrid>
     );
@@ -166,29 +176,52 @@ export default function CatalogPage() {
     <Box bg={bgColor} minHeight="100vh" py={8}>
       <Container maxW="container.xl">
         <VStack gap={8} align="stretch">
-          <Heading as="h1" size="xl" textAlign="center">
+          <Heading
+            as="h1"
+            size="xl"
+            textAlign="center"
+            color={theme === 'dark' ? 'white' : 'gray.800'}
+          >
             Product Catalog
           </Heading>
 
           {/* Filters and Search */}
-          <Box bg="white" p={6} borderRadius="lg" shadow="sm">
+          <Box
+            bg="white"
+            _dark={{ bg: 'gray.800', borderColor: 'gray.700' }}
+            p={6}
+            borderRadius="lg"
+            shadow="sm"
+            border="1px solid"
+            borderColor="gray.200"
+          >
             <HStack gap={4} wrap="wrap">
               {/* Category Filter */}
               <Box minW="200px">
-                <Text fontSize="sm" fontWeight="medium" mb={2}>
+                <Text
+                  fontSize="sm"
+                  fontWeight="medium"
+                  mb={2}
+                  color={theme === 'dark' ? 'white' : 'gray.800'}
+                >
                   Category
                 </Text>
                 <select
                   value={filters.category}
                   onChange={(e) => handleCategoryChange(e.target.value)}
                   disabled={categoriesLoading}
+                  aria-label="Filter products by category"
                   style={{
                     width: '100%',
                     padding: '8px 12px',
-                    border: '1px solid #e2e8f0',
+                    border:
+                      theme === 'dark'
+                        ? '1px solid #4a5568'
+                        : '1px solid #e2e8f0',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: 'white',
+                    backgroundColor: theme === 'dark' ? '#2d3748' : 'white',
+                    color: theme === 'dark' ? 'white' : 'black',
                   }}
                 >
                   {categories?.map((category) => (
@@ -201,19 +234,29 @@ export default function CatalogPage() {
 
               {/* Sort Filter */}
               <Box minW="200px">
-                <Text fontSize="sm" fontWeight="medium" mb={2}>
+                <Text
+                  fontSize="sm"
+                  fontWeight="medium"
+                  mb={2}
+                  color={theme === 'dark' ? 'white' : 'gray.800'}
+                >
                   Sort By
                 </Text>
                 <select
                   value={filters.sortBy}
                   onChange={(e) => handleSortChange(e.target.value)}
+                  aria-label="Sort products"
                   style={{
                     width: '100%',
                     padding: '8px 12px',
-                    border: '1px solid #e2e8f0',
+                    border:
+                      theme === 'dark'
+                        ? '1px solid #4a5568'
+                        : '1px solid #e2e8f0',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    backgroundColor: 'white',
+                    backgroundColor: theme === 'dark' ? '#2d3748' : 'white',
+                    color: theme === 'dark' ? 'white' : 'black',
                   }}
                 >
                   <option value="name-asc">Name A-Z</option>
@@ -226,37 +269,73 @@ export default function CatalogPage() {
               </Box>
 
               {/* Search Input */}
-              <Box flex="1" minW="300px">
-                <Text fontSize="sm" fontWeight="medium" mb={2}>
+              <Box flex="1" minW="300px" position="relative">
+                <Text
+                  fontSize="sm"
+                  fontWeight="medium"
+                  mb={2}
+                  color={theme === 'dark' ? 'white' : 'gray.800'}
+                >
                   Search Products
                 </Text>
-                <InputGroup
-                  startElement={<LuSearch />}
-                  endElement={
-                    searchInput ? (
-                      <CloseButton
-                        size="xs"
-                        onClick={handleClearSearch}
-                        me="-2"
-                      />
-                    ) : undefined
-                  }
-                >
-                  <Input
-                    ref={inputRef}
-                    placeholder="Search products..."
-                    value={searchInput}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    // Performance optimizations
-                    autoComplete="off"
-                    spellCheck={false}
-                    // Prevent unnecessary re-renders
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchInput}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      handleClearSearch();
+                    }
+                  }}
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-label="Search products"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border:
+                      theme === 'dark'
+                        ? '1px solid #4a5568'
+                        : '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    backgroundColor: theme === 'dark' ? '#2d3748' : 'white',
+                    color: theme === 'dark' ? 'white' : 'black',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.boxShadow =
+                      '0 0 0 3px rgba(66, 153, 225, 0.5)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+                {searchInput && (
+                  <button
+                    onClick={handleClearSearch}
+                    aria-label="Clear search"
                     style={{
-                      willChange: 'auto',
-                      transform: 'translateZ(0)', // Force hardware acceleration
+                      position: 'absolute',
+                      right: '8px',
+                      top: '72%',
+                      transform: 'translateY(-50%)',
+                      padding: '4px',
+                      minWidth: 'auto',
+                      height: 'auto',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: theme === 'dark' ? '#a0aec0' : '#718096',
+                      fontSize: '16px',
+                      lineHeight: '1',
                     }}
-                  />
-                </InputGroup>
+                  >
+                    ×
+                  </button>
+                )}
               </Box>
             </HStack>
           </Box>
