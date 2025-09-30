@@ -22,6 +22,7 @@ import {
   selectTotalQty,
 } from '@/store/slices/cartSlice';
 import { formatPrice } from '@/lib/utils';
+import { useTheme } from 'next-themes';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ interface CartDrawerProps {
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { theme } = useTheme();
   const items = useSelector((state: RootState) => state.cart.items);
   const subtotal = useSelector(selectSubtotal);
   const totalQty = useSelector(selectTotalQty);
@@ -65,15 +67,23 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
       right="0"
       height="100vh"
       width="400px"
-      bg="white"
+      bg={theme === 'dark' ? 'gray.800' : 'white'}
       boxShadow="lg"
       zIndex={1000}
       borderLeft="1px solid"
-      borderColor="gray.200"
+      borderColor={theme === 'dark' ? 'gray.700' : 'gray.200'}
     >
-      <Box p={4} borderBottom="1px solid" borderColor="gray.200">
+      <Box
+        p={4}
+        borderBottom="1px solid"
+        borderColor={theme === 'dark' ? 'gray.700' : 'gray.200'}
+      >
         <HStack justify="space-between" align="center">
-          <Text fontSize="xl" fontWeight="bold">
+          <Text
+            fontSize="xl"
+            fontWeight="bold"
+            color={theme === 'dark' ? 'white' : 'gray.800'}
+          >
             Shopping Cart ({totalQty} {totalQty === 1 ? 'item' : 'items'})
           </Text>
           <CloseButton onClick={onClose} />
@@ -83,7 +93,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
       <Box p={4} height="calc(100vh - 80px)" overflowY="auto">
         {items.length === 0 ? (
           <VStack gap={4} py={8}>
-            <Text fontSize="lg" color="gray.500">
+            <Text
+              fontSize="lg"
+              color={theme === 'dark' ? 'gray.400' : 'gray.500'}
+            >
               Your cart is empty
             </Text>
             <Button colorScheme="blue" onClick={onClose}>
@@ -99,9 +112,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   key={item.id}
                   p={3}
                   border="1px solid"
-                  borderColor="gray.200"
+                  borderColor={theme === 'dark' ? 'gray.700' : 'gray.200'}
                   borderRadius="md"
-                  bg="white"
+                  bg={theme === 'dark' ? 'gray.700' : 'white'}
                 >
                   <HStack gap={3} align="start">
                     <Image
@@ -120,6 +133,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                       <Text
                         fontSize="sm"
                         fontWeight="medium"
+                        color={theme === 'dark' ? 'white' : 'gray.800'}
                         style={{
                           display: '-webkit-box',
                           WebkitLineClamp: 2,
@@ -129,7 +143,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                       >
                         {item.title}
                       </Text>
-                      <Text fontSize="sm" color="blue.600" fontWeight="bold">
+                      <Text
+                        fontSize="sm"
+                        color={theme === 'dark' ? 'blue.300' : 'blue.600'}
+                        fontWeight="bold"
+                      >
                         {formatPrice(item.price)}
                       </Text>
 
@@ -145,7 +163,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         >
                           -
                         </Button>
-                        <Text fontSize="sm" minW="20px" textAlign="center">
+                        <Text
+                          fontSize="sm"
+                          minW="20px"
+                          textAlign="center"
+                          color={theme === 'dark' ? 'white' : 'gray.800'}
+                        >
                           {item.qty}
                         </Text>
                         <Button
@@ -162,7 +185,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                     </VStack>
 
                     <VStack align="end" gap={1}>
-                      <Text fontSize="sm" fontWeight="bold">
+                      <Text
+                        fontSize="sm"
+                        fontWeight="bold"
+                        color={theme === 'dark' ? 'white' : 'gray.800'}
+                      >
                         {formatPrice(item.price * item.qty)}
                       </Text>
                       <IconButton
@@ -183,17 +210,25 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
             {/* Cart Summary */}
             <Box
               p={4}
-              bg="gray.50"
+              bg={theme === 'dark' ? 'gray.700' : 'gray.50'}
               borderRadius="md"
               border="1px solid"
-              borderColor="gray.200"
+              borderColor={theme === 'dark' ? 'gray.600' : 'gray.200'}
             >
               <VStack gap={3} align="stretch">
                 <HStack justify="space-between">
-                  <Text fontSize="lg" fontWeight="bold">
+                  <Text
+                    fontSize="lg"
+                    fontWeight="bold"
+                    color={theme === 'dark' ? 'white' : 'gray.800'}
+                  >
                     Subtotal:
                   </Text>
-                  <Text fontSize="lg" fontWeight="bold" color="blue.600">
+                  <Text
+                    fontSize="lg"
+                    fontWeight="bold"
+                    color={theme === 'dark' ? 'blue.300' : 'blue.600'}
+                  >
                     {formatPrice(subtotal)}
                   </Text>
                 </HStack>
