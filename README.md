@@ -3,7 +3,7 @@
 A **frontend-focused e-commerce MVP** built with **Next.js 15, React 19, TypeScript, Chakra UI v3, Redux Toolkit, and TanStack Query**.  
 Demonstrates **production-ready frontend patterns** focusing on **performance, accessibility, and user experience**.
 
-**Live Demo:** [Deployed on Vercel](https://your-demo-url.vercel.app)  
+**Live Demo:** [Deployed on Vercel](https://e-commerce-mvp-three.vercel.app/)  
 **Tech Stack:** Next.js + React + TypeScript + Chakra UI + Redux Toolkit + TanStack Query
 
 ---
